@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Map - SMART IRRIGATION AND PRECISION FARMING</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    
+    <!-- Map Page CSS -->
+    <link rel="stylesheet" href="map.css">
+</head>
+<body>
+    <div class="map-container">
+        <header class="map-header">
+            <h1>🌾 Farm Location Map 🌾</h1>
+            <div class="coordinates-display">
+                <span id="coordText">Loading coordinates...</span>
+            </div>
+            <nav class="map-nav">
+                <a href="index.html" class="btn-back-main">← Back to Coordinates</a>
+                <button id="shareBtn" class="btn-share">📱 Share Location</button>
+            </nav>
+        </header>
+        
+        <main class="map-main">
+            <div id="map"></div>
+        </main>
+        
+        <footer class="map-footer">
+            <p>SMART IRRIGATION AND PRECISION FARMING</p>
+        </footer>
+    </div>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    
+    <!-- Map Page JavaScript -->
+    <script src="map.js"></script>
+</body>
+</html>

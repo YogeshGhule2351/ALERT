@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS Coordinates & Bluetooth Location Sharing</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(239, 68, 68, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(34, 197, 94, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Header styles */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #1f2937;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #1e40af, #dc2626);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        /* Warning message */
+        .warning {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .warning-icon {
+            font-size: 1.2rem;
+        }
+
+        /* Supported devices info */
+        .supported-devices {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .devices-icon {
+            font-size: 1.2rem;
+        }
+
+        /* Main layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        /* Control panel */
+        .control-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e5e7eb;
+            height: fit-content;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.95rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #1e40af;
+            box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.1);
+            background: white;
+        }
+
+        /* Button styles */
+        .button-group {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1e40af, #1e3a8a);
+            color: white;
+            box-shadow: 0 10px 30px rgba(30, 64, 175, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(30, 64, 175, 0.4);
+        }
+
+        .btn-bluetooth {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-bluetooth:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-send {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-send:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn:disabled {
+            background: #e5e7eb;
+            color: #9ca3af;
+            cursor: not-allowed;
+            opacity: 0.6;
+            transform: none !important;
+        }
+
+        /* Status display */
+        .status-section {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .status-title {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .connection-status.connected {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .connection-status.disconnected {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.connected {
+            background: #10b981;
+        }
+
+        .status-indicator.disconnected {
+            background: #ef4444;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-log {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .log-entry.info {
+            color: #1e40af;
+            background: #eff6ff;
+        }
+
+        .log-entry.success {
+            color: #065f46;
+            background: #ecfdf5;
+        }
+
+        .log-entry.error {
+            color: #991b1b;
+            background: #fef2f2;
+        }
+
+        .log-entry.warning {
+            color: #92400e;
+            background: #fffbeb;
+        }
+
+        /* Map section */
+        .map-section {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e5e7eb;
+        }
+
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+
+        /* Current coordinates display */
+        .current-coords {
+            background: #f0f9ff;
+            border: 1px solid #dbeafe;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            color: #1e40af;
+            font-weight: 500;
+        }
+
+        /* Responsive design */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-panel {
+                max-width: 500px;
+                margin: 0 auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .control-panel {
+                padding: 20px;
+            }
+            
+            #map {
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .control-panel {
+                padding: 15px;
+            }
+            
+            #map {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🗺️ GPS Coordinates & Bluetooth Sharing</h1>
+            <p>Enter coordinates, view on map, and share via Bluetooth</p>
+        </header>
+
+        <!-- Web Bluetooth Warning -->
+        <div class="warning">
+            <span class="warning-icon">⚠️</span>
+            <span><strong>Web Bluetooth API:</strong> Works only on HTTPS connections or localhost. Requires Chrome/Edge browser and user gesture to initiate.</span>
+        </div>
+
+        <!-- Supported Devices Info -->
+        <div class="supported-devices">
+            <span class="devices-icon">📶</span>
+            <span><strong>Supported Devices:</strong> HC-05, HC-06, HC-07, HC-08, RN42, JY-MCU, BT-24, SPP-DEV, LINUO, HC-03, HC-04</span>
+        </div>
+
+        <div class="main-content">
+            <!-- Control Panel -->
+            <aside class="control-panel">
+                <!-- Input Fields -->
+                <div class="input-group">
+                    <label for="latitude">Latitude (-90 to 90)</label>
+                    <input type="number" 
+                           id="latitude" 
+                           placeholder="e.g., 20.5937" 
+                           step="any" 
+                           min="-90" 
+                           max="90">
+                </div>
+                
+                <div class="input-group">
+                    <label for="longitude">Longitude (-180 to 180)</label>
+                    <input type="number" 
+                           id="longitude" 
+                           placeholder="e.g., 78.9629" 
+                           step="any" 
+                           min="-180" 
+                           max="180">
+                </div>
+
+                <!-- Buttons -->
+                <div class="button-group">
+                    <button id="showLocation" class="btn btn-primary">
+                        📍 Show Location on Map
+                    </button>
+                    <button id="connectBluetooth" class="btn btn-bluetooth">
+                        📶 Connect Bluetooth
+                    </button>
+                    <button id="sendCoordinates" class="btn btn-send" disabled>
+                        📤 Send Coordinates
+                    </button>
+                </div>
+
+                <!-- Current Coordinates Display -->
+                <div id="currentCoords" class="current-coords" style="display: none;">
+                    <strong>Current Location:</strong><br>
+                    <span id="coordsText"></span>
+                </div>
+
+                <!-- Status Section -->
+                <div class="status-section">
+                    <div class="status-title">Connection Status</div>
+                    <div id="connectionStatus" class="connection-status disconnected">
+                        <span class="status-indicator disconnected"></span>
+                        <span>Disconnected</span>
+                    </div>
+                    
+                    <div class="status-title">Status Log</div>
+                    <div id="statusLog" class="status-log">
+                        <div class="log-entry info">System initialized. Ready to connect.</div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Map Section -->
+            <main class="map-section">
+                <div id="map"></div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+
+    <script>
+        // Global variables
+        let map;
+        let currentMarker = null;
+        let currentCoordinates = null;
+        let bluetoothDevice = null;
+        let bluetoothServer = null;
+        let bluetoothCharacteristic = null;
+
+        // Default coordinates (center of India)
+        const DEFAULT_LAT = 20.5937;
+        const DEFAULT_LNG = 78.9629;
+        const DEFAULT_ZOOM = 5;
+
+        // Bluetooth service UUID (custom service for coordinates)
+        const COORDINATE_SERVICE_UUID = '12345678-1234-1234-1234-123456789abc';
+        const COORDINATE_CHARACTERISTIC_UUID = '12345678-1234-1234-1234-123456789abd';
+
+        // Supported device names/prefixes
+        const SUPPORTED_DEVICES = [
+            'HC-05',
+            'HC-06',
+            'HC-07',
+            'HC-08',
+            'RN42',
+            'JY-MCU',
+            'BT-24',
+            'SPP-DEV',
+            'LINUO',
+            'HC-03',
+            'HC-04'
+        ];
+
+        /**
+         * Initialize the map when the page loads
+         */
+        function initMap() {
+            try {
+                // Create the map instance
+                map = L.map('map').setView([DEFAULT_LAT, DEFAULT_LNG], DEFAULT_ZOOM);
+                
+                // Add OpenStreetMap tiles
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(map);
+                
+                addLogEntry('Map initialized successfully', 'success');
+            } catch (error) {
+                addLogEntry('Failed to initialize map: ' + error.message, 'error');
+            }
+        }
+
+        /**
+         * Validate latitude and longitude coordinates
+         * @param {number} lat - Latitude value
+         * @param {number} lng - Longitude value
+         * @returns {Object} - Validation result with isValid and message properties
+         */
+        function validateCoordinates(lat, lng) {
+            // Check if values are numbers
+            if (isNaN(lat) || isNaN(lng)) {
+                return {
+                    isValid: false,
+                    message: 'Please enter valid numeric values for latitude and longitude.'
+                };
+            }
+            
+            // Check latitude range
+            if (lat < -90 || lat > 90) {
+                return {
+                    isValid: false,
+                    message: 'Latitude must be between -90 and 90 degrees.'
+                };
+            }
+            
+            // Check longitude range
+            if (lng < -180 || lng > 180) {
+                return {
+                    isValid: false,
+                    message: 'Longitude must be between -180 and 180 degrees.'
+                };
+            }
+            
+            return {
+                isValid: true,
+                message: ''
+            };
+        }
+
+        /**
+         * Show location on map
+         */
+        function showLocation() {
+            try {
+                // Get input values
+                const latInput = document.getElementById('latitude');
+                const lngInput = document.getElementById('longitude');
+                
+                const lat = parseFloat(latInput.value);
+                const lng = parseFloat(lngInput.value);
+                
+                // Validate coordinates
+                const validation = validateCoordinates(lat, lng);
+                
+                if (!validation.isValid) {
+                    addLogEntry(validation.message, 'error');
+                    return;
+                }
+                
+                // Store current coordinates
+                currentCoordinates = [lat, lng];
+                
+                // Remove existing marker if it exists
+                if (currentMarker) {
+                    map.removeLayer(currentMarker);
+                }
+                
+                // Create new marker with popup
+                currentMarker = L.marker([lat, lng]).addTo(map);
+                currentMarker.bindPopup(`
+                    <strong>📍 Location</strong><br>
+                    Latitude: ${lat.toFixed(6)}<br>
+                    Longitude: ${lng.toFixed(6)}<br>
+                    <br>
+                    <small>Ready for Bluetooth transmission</small>
+                `).openPopup();
+                
+                // Move map to new location with smooth animation
+                map.flyTo([lat, lng], 13, {
+                    duration: 2,
+                    easeLinearity: 0.5
+                });
+                
+                // Update current coordinates display
+                updateCurrentCoordinatesDisplay(lat, lng);
+                
+                // Enable send button if Bluetooth is connected
+                if (bluetoothDevice && bluetoothDevice.gatt.connected) {
+                    document.getElementById('sendCoordinates').disabled = false;
+                }
+                
+                addLogEntry(`Location set: ${lat.toFixed(6)}, ${lng.toFixed(6)}`, 'success');
+                
+            } catch (error) {
+                addLogEntry('Error showing location: ' + error.message, 'error');
+            }
+        }
+
+        /**
+         * Update current coordinates display
+         * @param {number} lat - Latitude
+         * @param {number} lng - Longitude
+         */
+        function updateCurrentCoordinatesDisplay(lat, lng) {
+            const coordsElement = document.getElementById('currentCoords');
+            const coordsText = document.getElementById('coordsText');
+            
+            coordsText.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            coordsElement.style.display = 'block';
+        }
+
+        /**
+         * Check if device is supported
+         * @param {BluetoothDevice} device - Bluetooth device
+         * @returns {boolean} - Whether device is supported
+         */
+        function isSupportedDevice(device) {
+            if (!device.name) return false;
+            
+            const deviceName = device.name.toUpperCase();
+            return SUPPORTED_DEVICES.some(supportedDevice => 
+                deviceName.includes(supportedDevice.toUpperCase())
+            );
+        }
+
+        /**
+         * Connect to Bluetooth device
+         */
+        async function connectBluetooth() {
+            try {
+                // Check if Web Bluetooth API is supported
+                if (!navigator.bluetooth) {
+                    throw new Error('Web Bluetooth API is not supported in this browser. Please use Chrome or Edge.');
+                }
+                
+                addLogEntry('Scanning for supported Bluetooth devices...', 'info');
+                addLogEntry('Supported devices: ' + SUPPORTED_DEVICES.join(', '), 'info');
+                
+                // Request Bluetooth device with filtering
+                let device;
+                
+                try {
+                    // First try to get specific device by name filters
+                    const nameFilters = SUPPORTED_DEVICES.map(name => ({ namePrefix: name }));
+                    
+                    device = await navigator.bluetooth.requestDevice({
+                        filters: nameFilters,
+                        optionalServices: [COORDINATE_SERVICE_UUID]
+                    });
+                } catch (filterError) {
+                    // If filtering fails, fall back to acceptAllDevices with manual filtering
+                    addLogEntry('Name filtering failed, trying device discovery...', 'warning');
+                    
+                    const allDevices = await navigator.bluetooth.requestDevice({
+                        acceptAllDevices: true,
+                        optionalServices: [COORDINATE_SERVICE_UUID]
+                    });
+                    
+                    // Check if the selected device is supported
+                    if (!isSupportedDevice(allDevices)) {
+                        throw new Error(`Device "${allDevices.name || 'Unknown'}" is not supported. Please select a device from: ${SUPPORTED_DEVICES.join(', ')}`);
+                    }
+                    
+                    device = allDevices;
+                }
+                
+                // Additional validation
+                if (!isSupportedDevice(device)) {
+                    throw new Error(`Device "${device.name || 'Unknown'}" is not supported. Please select a device from: ${SUPPORTED_DEVICES.join(', ')}`);
+                }
+                
+                bluetoothDevice = device;
+                addLogEntry(`Connected to supported device: ${device.name || 'Unknown'}`, 'success');
+                
+                // Connect to GATT server
+                bluetoothServer = await bluetoothDevice.gatt.connect();
+                addLogEntry('GATT server connected', 'success');
+                
+                // Update connection status
+                updateConnectionStatus(true);
+                
+                // Enable send button if we have coordinates
+                if (currentCoordinates) {
+                    document.getElementById('sendCoordinates').disabled = false;
+                }
+                
+                // Add disconnect listener
+                bluetoothDevice.addEventListener('gattserverdisconnected', onBluetoothDisconnected);
+                
+            } catch (error) {
+                addLogEntry('Bluetooth connection failed: ' + error.message, 'error');
+                updateConnectionStatus(false);
+            }
+        }
+
+        /**
+         * Send coordinates via Bluetooth
+         */
+        async function sendCoordinates() {
+            try {
+                if (!currentCoordinates) {
+                    addLogEntry('No coordinates to send. Please set a location first.', 'warning');
+                    return;
+                }
+                
+                if (!bluetoothDevice || !bluetoothDevice.gatt.connected) {
+                    addLogEntry('Bluetooth device not connected. Please connect first.', 'warning');
+                    return;
+                }
+                
+                // Get the service
+                const service = await bluetoothServer.getPrimaryService(COORDINATE_SERVICE_UUID);
+                
+                // Get the characteristic
+                const characteristic = await service.getCharacteristic(COORDINATE_CHARACTERISTIC_UUID);
+                
+                // Format coordinates as string "lat,lng"
+                const coordinateString = `${currentCoordinates[0].toFixed(6)},${currentCoordinates[1].toFixed(6)}`;
+                
+                // Convert string to bytes (UTF-8 encoding)
+                const encoder = new TextEncoder();
+                const data = encoder.encode(coordinateString);
+                
+                // Send data
+                await characteristic.writeValue(data);
+                
+                addLogEntry(`Coordinates sent: ${coordinateString}`, 'success');
+                
+            } catch (error) {
+                addLogEntry('Failed to send coordinates: ' + error.message, 'error');
+            }
+        }
+
+        /**
+         * Handle Bluetooth disconnection
+         */
+        function onBluetoothDisconnected() {
+            addLogEntry('Bluetooth device disconnected', 'warning');
+            updateConnectionStatus(false);
+            document.getElementById('sendCoordinates').disabled = true;
+        }
+
+        /**
+         * Update connection status display
+         * @param {boolean} connected - Connection state
+         */
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            const indicator = statusElement.querySelector('.status-indicator');
+            const text = statusElement.querySelector('span:last-child');
+            
+            if (connected) {
+                statusElement.className = 'connection-status connected';
+                indicator.className = 'status-indicator connected';
+                text.textContent = 'Connected';
+            } else {
+                statusElement.className = 'connection-status disconnected';
+                indicator.className = 'status-indicator disconnected';
+                text.textContent = 'Disconnected';
+            }
+        }
+
+        /**
+         * Add log entry to status log
+         * @param {string} message - Log message
+         * @param {string} type - Log type (info, success, error, warning)
+         */
+        function addLogEntry(message, type = 'info') {
+            const logElement = document.getElementById('statusLog');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            
+            logElement.appendChild(logEntry);
+            
+            // Auto-scroll to bottom
+            logElement.scrollTop = logElement.scrollHeight;
+            
+            // Limit log entries to prevent memory issues
+            const entries = logElement.querySelectorAll('.log-entry');
+            if (entries.length > 50) {
+                entries[0].remove();
+            }
+        }
+
+        /**
+         * Initialize event listeners
+         */
+        function initEventListeners() {
+            // Show Location button
+            document.getElementById('showLocation').addEventListener('click', showLocation);
+            
+            // Connect Bluetooth button
+            document.getElementById('connectBluetooth').addEventListener('click', connectBluetooth);
+            
+            // Send Coordinates button
+            document.getElementById('sendCoordinates').addEventListener('click', sendCoordinates);
+            
+            // Enter key support for input fields
+            document.getElementById('latitude').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') showLocation();
+            });
+            
+            document.getElementById('longitude').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') showLocation();
+            });
+        }
+
+        /**
+         * Main initialization function
+         */
+        function init() {
+            // Wait for DOM to be fully loaded
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    initMap();
+                    initEventListeners();
+                });
+            } else {
+                // DOM is already loaded
+                initMap();
+                initEventListeners();
+            }
+        }
+
+        // Initialize the application
+        init();
+    </script>
+</body>
+</html>

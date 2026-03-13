@@ -1,0 +1,16 @@
+{
+  "name": "smart-irrigation-precision-farming",
+  "version": "1.0.0",
+  "description": "SMART IRRIGATION AND PRECISION FARMING",
+  "main": "index.html",
+  "scripts": {
+    "start": "live-server --port=3000 --open=index.html",
+    "dev": "live-server --port=3000 --open=index.html"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  },
+  "keywords": ["irrigation", "precision", "farming", "agriculture", "smart"],
+  "author": "",
+  "license": "MIT"
+}

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMART IRRIGATION AND PRECISION FARMING</title>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌾 SMART IRRIGATION AND PRECISION FARMING 🌾</h1>
+            <p>Enter latitude and longitude for precision farming location</p>
+            <nav class="nav-header">
+                <a href="landing.html" class="btn-back">← Back to Landing Page</a>
+            </nav>
+        </header>
+        
+        <main>
+            <section class="input-section">
+                <div class="input-group">
+                    <label for="latitude">Latitude:</label>
+                    <input type="number" 
+                           id="latitude" 
+                           placeholder="e.g., 20.5937" 
+                           step="any" 
+                           min="-90" 
+                           max="90">
+                </div>
+                
+                <div class="input-group">
+                    <label for="longitude">Longitude:</label>
+                    <input type="number" 
+                           id="longitude" 
+                           placeholder="e.g., 78.9629" 
+                           step="any" 
+                           min="-180" 
+                           max="180">
+                </div>
+                
+                <div class="button-group">
+                    <button id="showLocation" class="btn-primary">Show Location</button>
+                    <button id="shareLocation" class="btn-whatsapp" disabled>📱 Share on WhatsApp</button>
+                </div>
+                
+                <div id="currentLocation" class="current-location" style="display: none;">
+                    <strong>Current Location:</strong>
+                    <span id="locationText"></span>
+                </div>
+                
+                <div id="errorMessage" class="error-message"></div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Custom JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #1a1a1a;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+    min-height: 100vh;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(239, 68, 68, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 40% 20%, rgba(34, 197, 94, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.map-container {
+    position: relative;
+    z-index: 2;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Map header */
+.map-header {
+    background: white;
+    color: #1f2937;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.map-header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #1e40af, #dc2626);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.coordinates-display {
+    background: #f0f9ff;
+    color: #1e40af;
+    padding: 10px 20px;
+    border-radius: 25px;
+    display: inline-block;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 15px;
+    border: 1px solid #dbeafe;
+    font-family: 'Courier New', monospace;
+}
+
+.map-nav {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.btn-back-main {
+    background: white;
+    color: #1e40af;
+    padding: 10px 20px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-back-main:hover {
+    background: #1e40af;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(30, 64, 175, 0.3);
+}
+
+.btn-share {
+    background: linear-gradient(135deg, #25D366, #128C7E);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+}
+
+.btn-share:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
+}
+
+/* Map main section */
+.map-main {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: white;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+    min-height: calc(100vh - 140px);
+}
+
+/* Map footer */
+.map-footer {
+    background: white;
+    color: #6b7280;
+    padding: 15px;
+    text-align: center;
+    font-size: 0.9rem;
+    position: relative;
+    z-index: 1000;
+    border-top: 1px solid #e5e7eb;
+    font-weight: 500;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .map-header {
+        padding: 15px;
+    }
+    
+    .map-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .coordinates-display {
+        font-size: 0.8rem;
+        padding: 8px 15px;
+    }
+    
+    .btn-back-main,
+    .btn-share {
+        font-size: 0.8rem;
+        padding: 8px 15px;
+    }
+    
+    #map {
+        min-height: calc(100vh - 120px);
+    }
+}
+
+@media (max-width: 480px) {
+    .map-header {
+        padding: 12px;
+    }
+    
+    .map-header h1 {
+        font-size: 1.3rem;
+    }
+    
+    .coordinates-display {
+        font-size: 0.75rem;
+        padding: 6px 12px;
+    }
+    
+    .btn-back-main,
+    .btn-share {
+        font-size: 0.75rem;
+        padding: 6px 12px;
+    }
+    
+    .map-nav {
+        gap: 10px;
+    }
+    
+    #map {
+        min-height: calc(100vh - 100px);
+    }
+}
